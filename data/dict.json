@@ -1,0 +1,37 @@
+{
+  "hello": {
+    "ml": "നമസ്കാരം",
+    "manglish": "namaskaram",
+    "en": "Hello"
+  },
+  "thank you": {
+    "ml": "നന്ദി",
+    "manglish": "nandi",
+    "en": "Thank you"
+  },
+  "how are you": {
+    "ml": "സുഖമാണോ?",
+    "manglish": "sughamaano?",
+    "en": "How are you?"
+  },
+  "goodbye": {
+    "ml": "വിട",
+    "manglish": "vida",
+    "en": "Goodbye"
+  },
+  "my name is vaishnavi": {
+    "ml": "എന്റെ പേര് വൈഷ്ണവി ആണ്",
+    "manglish": "ente peru vaishnavi aanu",
+    "en": "My name is Vaishnavi"
+  },
+  "where are you from": {
+    "ml": "നിങ്ങൾ എവിടെയാണ് നിന്നുള്ളത്?",
+    "manglish": "ningal evidaayaana?",
+    "en": "Where are you from?"
+  },
+  "i am from kochi": {
+    "ml": "ഞാൻ കൊച്ചിയിൽ നിന്നാണ്",
+    "manglish": "njan kochiyil ninnanu",
+    "en": "I am from Kochi"
+  }
+}

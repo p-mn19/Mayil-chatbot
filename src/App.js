@@ -3,56 +3,59 @@ import axios from "axios";
 
 function App() {
   const [message, setMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState([]); // Store chat history
+  const [chatHistory, setChatHistory] = useState([]);
 
   const handleSend = async () => {
-    if (!message) return; // Prevent empty messages
-    // Add user message to chat history
+    if (!message.trim()) return;
+
+    // Add user message
     setChatHistory((prev) => [...prev, { sender: "user", text: message }]);
 
     try {
-      // Send user message to the backend
-      const response = await axios.post("http://localhost:5000/chat", {
+      const res = await axios.post("http://localhost:5000/chat", {
         message,
       });
 
-      // Add bot reply to chat history
-      setChatHistory((prev) => [
-        ...prev,
-        { sender: "bot", text: response.data.reply },
-      ]);
+      // Handle bot response with multi-language reply
+      if (res.data.en && res.data.ml && res.data.manglish) {
+        const combinedText = `English: ${res.data.en}\nManglish: ${res.data.manglish}\nMalayalam: ${res.data.ml}`;
+        setChatHistory((prev) => [...prev, { sender: "bot", text: combinedText }]);
+      } else {
+        // Fallback for basic string replies
+        setChatHistory((prev) => [
+          ...prev,
+          { sender: "bot", text: res.data.reply || "Sorry, I didn't understand that." },
+        ]);
+      }
     } catch (error) {
-      console.error("Error sending message:", error);
+      console.error("API error:", error);
       setChatHistory((prev) => [
         ...prev,
         { sender: "bot", text: "Something went wrong. Please try again." },
       ]);
     }
 
-    setMessage(""); // Clear input field
+    setMessage("");
   };
 
   return (
     <div style={styles.appContainer}>
       <div style={styles.chatBox}>
-        {/* Title */}
         <h1 style={styles.title}>Mayil</h1>
 
-        {/* Chat History */}
         <div style={styles.chatDisplay}>
-          {chatHistory.map((chat, index) => (
+          {chatHistory.map((chat, i) => (
             <div
-              key={index}
-              style={
-                chat.sender === "user" ? styles.userMessage : styles.botReply
-              }
+              key={i}
+              style={chat.sender === "user" ? styles.userMessage : styles.botReply}
             >
-              {chat.text}
+              {chat.text.split("\n").map((line, j) => (
+                <div key={j}>{line}</div>
+              ))}
             </div>
           ))}
         </div>
 
-        {/* Input and Send Button */}
         <div style={styles.inputContainer}>
           <input
             type="text"
@@ -60,6 +63,7 @@ function App() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             style={styles.inputField}
+            onKeyDown={(e) => e.key === "Enter" && handleSend()}
           />
           <button onClick={handleSend} style={styles.sendButton}>
             Send
@@ -72,7 +76,7 @@ function App() {
 
 const styles = {
   appContainer: {
-    backgroundColor: "#1E1E2F", // Dark background
+    backgroundColor: "#1E1E2F",
     height: "100vh",
     display: "flex",
     justifyContent: "center",
@@ -80,11 +84,11 @@ const styles = {
     fontFamily: "'Poppins', sans-serif",
   },
   chatBox: {
-    backgroundColor: "#292B40", // Chatbox background
+    backgroundColor: "#292B40",
     borderRadius: "10px",
     boxShadow: "0px 5px 15px rgba(0, 0, 0, 0.3)",
     width: "400px",
-    height: "600px", // Set a fixed height
+    height: "600px",
     padding: "20px",
     display: "flex",
     flexDirection: "column",
@@ -99,8 +103,8 @@ const styles = {
     backgroundColor: "#202233",
     borderRadius: "8px",
     width: "100%",
-    height: "80%", // Take up most of the chatbox height
-    overflowY: "auto", // Enable scrolling
+    height: "80%",
+    overflowY: "auto",
     padding: "10px",
     color: "#A6A6A6",
     marginBottom: "20px",
@@ -112,7 +116,7 @@ const styles = {
     borderRadius: "10px",
     textAlign: "right",
     marginBottom: "8px",
-    wordWrap: "break-word",
+    whiteSpace: "pre-wrap",
   },
   botReply: {
     backgroundColor: "#51537B",
@@ -121,7 +125,7 @@ const styles = {
     borderRadius: "10px",
     textAlign: "left",
     marginBottom: "8px",
-    wordWrap: "break-word",
+    whiteSpace: "pre-wrap",
   },
   inputContainer: {
     display: "flex",
@@ -148,4 +152,3 @@ const styles = {
 };
 
 export default App;
-

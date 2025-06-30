@@ -1,47 +1,54 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import json
+from intent_classifier import classify_intent
+from translator import translate
+from corrector import correct_mixed_input
+import random
 
 app = Flask(__name__)
 CORS(app)
 
-# Load dialogs.txt as Q&A pairs
-qa_pairs = {}
-with open('dialogs.txt', 'r', encoding='utf8') as f:
-    lines = f.read().strip().splitlines()
-    for i in range(0, len(lines)-1, 2):
-        question = lines[i].strip().lower()
-        answer = lines[i+1].strip()
-        qa_pairs[question] = answer
+greetings = [
+    {"en": "Hello!", "ml": "ഹലോ!", "manglish": "halo!"},
+    {"en": "Hi!", "ml": "ഹായ്!", "manglish": "hai!"},
+    {"en": "Namaskaram!", "ml": "നമസ്കാരം!", "manglish": "namaskaram!"}
+]
 
-# Matching logic
-def find_answer(user_input):
-    user_input = user_input.strip().lower()
+farewells = [
+    {"en": "Goodbye!", "ml": "വിട", "manglish": "vida"},
+    {"en": "See you!", "ml": "വീണ്ടും കാണാം", "manglish": "veendum kaanam"}
+]
 
-    # Exact match
-    if user_input in qa_pairs:
-        return qa_pairs[user_input]
-
-    # Partial match: look for keywords in questions
-    for question in qa_pairs:
-        if all(word in question for word in user_input.split()):
-            return qa_pairs[question]
-
-    # No match found
-    return "Sorry, I don't know that yet. Try asking something else!"
+chat_replies = [
+    {"en": "How are you?", "ml": "സുഖമാണോ?", "manglish": "sukhamaano?"},
+    {"en": "I'm fine.", "ml": "ഞാൻ സുഖമാണ്", "manglish": "njan sukhamaanu"},
+    {"en": "Nice to meet you!", "ml": "കണ്ടതിൽ സന്തോഷം!", "manglish": "kandathil santhosham!"}
+]
 
 @app.route('/chat', methods=['POST'])
 def chat():
     user_input = request.json.get('message', '').strip()
 
     if not user_input:
-        return jsonify({'reply': "Please say something!"})
+        return jsonify({'en': "Please say something!", 'ml': "ദയവായി എന്തെങ്കിലും പറയൂ!", 'manglish': "dayavaayi enthengilum parayu!"})
 
-    if user_input.lower() in ['bye', 'exit', 'quit']:
-        return jsonify({'reply': "Goodbye! Take care!"})
+    intent = classify_intent(user_input)
 
-    reply = find_answer(user_input)
-    return jsonify({'reply': reply})
+    if intent == 'greet':
+        return jsonify(random.choice(greetings))
+    elif intent == 'translate':
+        return jsonify(translate(user_input))
+    elif intent == 'correct':
+        corrected = correct_mixed_input(user_input)
+        return jsonify({
+            'en': f"Corrected: {corrected}",
+            'ml': f"ശുദ്ധമാക്കിയത്: {corrected}",
+            'manglish': f"shuddhamakkiyathu: {corrected}"
+        })
+    elif intent == 'bye':
+        return jsonify(random.choice(farewells))
+    else:
+        return jsonify(random.choice(chat_replies))
 
 if __name__ == '__main__':
     app.run(debug=True)
